@@ -128,7 +128,7 @@ def reconcile(api, config, roster, send_invites=False, removed=None):
         item['member'] = item['email'] in verified
         if item.get('removed') and item['member']:
             item['state'] = 'REMOVAL_FAILED'
-        elif item['member']:
+        elif item['member'] and not item.get('error'):
             item['state'] = verified[item['email']]['attributes'].get('state') or item['state']
     return results
 
@@ -147,7 +147,7 @@ def main():
     if not args.show_emails:
         for i, item in enumerate(results, 1): item['email'] = 'roster-entry-' + str(i)
     print(json.dumps({'internalRoster': results}, ensure_ascii=False, indent=2))
-    if any((not x.get('removed') and not x['member'] and x['state'] != 'TEAM_INVITATION_PENDING') or x['state'] == 'REMOVAL_FAILED' for x in results):
+    if any(x.get('error') or (not x.get('removed') and not x['member'] and x['state'] != 'TEAM_INVITATION_PENDING') or x['state'] == 'REMOVAL_FAILED' for x in results):
         raise SystemExit(2)
 
 

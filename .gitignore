@@ -10,3 +10,8 @@ __pycache__/
 *.log
 config.json
 state/
+**/private-account-defaults.md
+*-private.json
+internal-testers.json
+internal-roster-config.json
+account-defaults.json

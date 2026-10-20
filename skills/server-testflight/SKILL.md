@@ -32,6 +32,8 @@ A version/number identifies one immutable server state directory. Repeat the sam
 
 Report these states separately: cloud build success, byte upload completion, Apple processing VALID, beta review pending/approved, and actual tester availability. Internal testing requires an eligible App Store Connect user and this App's internal group/build association; knowing an email is not proof of access. An external public link requires the approved build in the external group. Never submit App Store review when only TestFlight was requested.
 
+If an installation has `references/private-account-defaults.md`, read it for the account roster location and managed project registry. This optional local note is private and must never be exported.
+
 ## Fixed internal tester roster
 
 For recurring internal testers across projects, reuse an account-private roster with separate app/group configuration per project. Respect whether the user authorized future releases or immediate enrollment on existing apps. Use a server-private roster and [the roster contract](references/internal-roster.md). Run `scripts/sync_internal_testers.py` from the server before the release finish adapter reports availability. Match users by exact email, preserve existing roles and group members, and require entry-specific authorization for team invitations, role additions, or app-access changes. A roster sync must never enable external testing.

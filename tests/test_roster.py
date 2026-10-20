@@ -52,7 +52,6 @@ class RosterTests(unittest.TestCase):
         fake=Fake(roles=['ADMIN'],installed=True);result=module.reconcile(fake,self.config,[{'email':'tester@example.org'}],send_invites=True)
         self.assertEqual(result[0]['state'],'INSTALLED');self.assertEqual(fake.writes,[])
 
-if __name__=='__main__':unittest.main()
 
 class ManageTests(unittest.TestCase):
     def test_remove_then_readd_clears_exclusion(self):
@@ -63,3 +62,20 @@ class ManageTests(unittest.TestCase):
         self.assertEqual(removed['testers'],[]);self.assertEqual(removed['removed'],['tester@example.org'])
         added=m.edit(removed,'add','tester@example.org')
         self.assertEqual(added['removed'],[]);self.assertEqual(len(added['testers']),1)
+
+class RemovalTests(unittest.TestCase):
+    def test_exclusion_removes_group_membership_without_deleting_team_user(self):
+        fake=Fake(roles=['ADMIN'],installed=True)
+        original=fake.api
+        def api(method,path,body=None):
+            if method=='DELETE':
+                self.assertEqual(path,'/v1/betaGroups/g/relationships/betaTesters')
+                self.assertEqual(body,{'data':[{'type':'betaTesters','id':'t'}]})
+                fake.writes.append((method,path,body));fake.testers=[];return {}
+            return original(method,path,body)
+        fake.api=api
+        result=module.reconcile(fake,RosterTests.config,[],removed=['tester@example.org'])
+        self.assertEqual(result[0]['state'],'REMOVED');self.assertFalse(result[0]['member'])
+        self.assertEqual(len(fake.users),1);self.assertEqual(fake.users[0]['attributes']['roles'],['ADMIN'])
+
+if __name__=='__main__':unittest.main()
