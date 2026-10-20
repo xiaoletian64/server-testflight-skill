@@ -5,6 +5,8 @@ description: Coordinate iOS cloud builds, server-side signing and API uploads to
 
 # Server TestFlight
 
+When the user requests “内部发布” or internal TestFlight distribution, use this skill and the configured account-private roster across projects. Keep internal-only policy unless the user explicitly requests a different distribution mode.
+
 Use a Linux coordinator and a hosted macOS/Xcode runner. A personal Mac is unnecessary; Xcode compilation still requires macOS. This is a personal, independent project, with no Apple or GitHub affiliation.
 
 ## Configure once
@@ -29,6 +31,14 @@ With the user's authorization and a verified intended source revision, remove `-
 A version/number identifies one immutable server state directory. Repeat the same command after interruption; it resumes the recorded cloud run and signed IPA rather than allocating a new build. If dispatch was attempted but no run can be identified, inspect the cloud run list before changing state. No automatic retry may create duplicate uploads or switch the intended source commit.
 
 Report these states separately: cloud build success, byte upload completion, Apple processing VALID, beta review pending/approved, and actual tester availability. Internal testing requires an eligible App Store Connect user and this App's internal group/build association; knowing an email is not proof of access. An external public link requires the approved build in the external group. Never submit App Store review when only TestFlight was requested.
+
+## Fixed internal tester roster
+
+For recurring internal testers across projects, reuse an account-private roster with separate app/group configuration per project. Respect whether the user authorized future releases or immediate enrollment on existing apps. Use a server-private roster and [the roster contract](references/internal-roster.md). Run `scripts/sync_internal_testers.py` from the server before the release finish adapter reports availability. Match users by exact email, preserve existing roles and group members, and require entry-specific authorization for team invitations, role additions, or app-access changes. A roster sync must never enable external testing.
+
+Do not place real emails in this skill or its public repository. Keep pending team invitations pending until accepted; reconcile them again on subsequent releases. Send the initial invitation on addition and resend only on an explicit request, rather than emailing every release. Distinguish group membership, invitation acceptance and installation in status reports. HTTP 403 user-management failures require a suitable administrative key or an owner action; do not claim the user was added, or silently switch to browser mutations against the user's API-only preference.
+
+To add, remove or list people, use `scripts/manage_roster.py` against the account-private roster. Addition preserves existing entries; role/app-access/team-invitation authorizations must come from the user's request. Removal records an exclusion and the next sync removes that email from each managed project group, without deleting the team account, changing roles, or touching unmanaged groups. If immediate removal is requested, sync all configured managed project groups now. Never equate removal from the roster with revocation before API readback confirms group removal.
 
 ## Publish or share the skill
 
