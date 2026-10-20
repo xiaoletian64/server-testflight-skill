@@ -8,9 +8,6 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-ELIGIBLE = {'ACCOUNT_HOLDER', 'ADMIN', 'APP_MANAGER', 'DEVELOPER', 'MARKETING'}
-
-
 class Apple:
     def __init__(self, config):
         self.config = config
@@ -93,12 +90,9 @@ def reconcile(api, config, roster, send_invites=False, removed=None):
                 results.append({'email': email, 'state': 'TEAM_INVITATION_PENDING'})
                 continue
             attrs = user['attributes']; roles = attrs.get('roles', [])
-            if not ELIGIBLE.intersection(roles):
-                if not entry.get('allow_add_marketing'):
-                    results.append({'email': email, 'state': 'ROLE_AUTHORIZATION_REQUIRED'}); continue
-                api.api('PATCH', '/v1/users/' + user['id'], {'data': {'type': 'users', 'id': user['id'],
-                    'attributes': {'roles': roles + ['MARKETING']}}})
-                roles = roles + ['MARKETING']
+            # Apple is the authority on membership eligibility. Existing team
+            # members may be accepted directly; do not infer a required role
+            # change from their role labels or grant extra permissions first.
             if not attrs.get('allAppsVisible'):
                 visible = api.all('/v1/users/' + user['id'] + '/visibleApps?limit=200')
                 if not any(x['id'] == app for x in visible):

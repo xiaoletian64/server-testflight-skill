@@ -36,7 +36,7 @@ class RosterTests(unittest.TestCase):
         fake=Fake();entry={'email':'tester@example.org','allow_add_marketing':True}
         result=module.reconcile(fake,self.config,[entry])
         self.assertTrue(result[0]['member'])
-        self.assertEqual(fake.users[0]['attributes']['roles'],['CUSTOMER_SUPPORT','FINANCE','MARKETING'])
+        self.assertEqual(fake.users[0]['attributes']['roles'],['CUSTOMER_SUPPORT','FINANCE'])
         count=len(fake.writes);module.reconcile(fake,self.config,[entry]);self.assertEqual(len(fake.writes),count)
     def test_unknown_user_is_invited_only_once_and_only_to_intended_app(self):
         fake=Fake(user=False);entry={'email':'tester@example.org','first_name':'Demo','last_name':'Tester','allow_team_invitation':True}
@@ -45,9 +45,9 @@ class RosterTests(unittest.TestCase):
         self.assertEqual(len(fake.writes),1)
         body=fake.writes[0][2]['data'];self.assertFalse(body['attributes']['allAppsVisible']);self.assertFalse(body['attributes']['provisioningAllowed']);self.assertEqual(body['attributes']['roles'],['MARKETING'])
         self.assertEqual(body['relationships']['visibleApps']['data'],[{'type':'apps','id':'a'}])
-    def test_no_role_change_without_explicit_authorization(self):
+    def test_existing_team_member_is_added_without_role_mutation(self):
         fake=Fake();result=module.reconcile(fake,self.config,[{'email':'tester@example.org'}])
-        self.assertEqual(result[0]['state'],'ROLE_AUTHORIZATION_REQUIRED');self.assertEqual(fake.writes,[])
+        self.assertTrue(result[0]['member']);self.assertEqual([w[1] for w in fake.writes],['/v1/betaTesters'])
     def test_installed_user_is_not_reinvited(self):
         fake=Fake(roles=['ADMIN'],installed=True);result=module.reconcile(fake,self.config,[{'email':'tester@example.org'}],send_invites=True)
         self.assertEqual(result[0]['state'],'INSTALLED');self.assertEqual(fake.writes,[])

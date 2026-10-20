@@ -25,7 +25,7 @@ Private roster shape:
 ]
 ```
 
-These are documentation examples, not a real roster. Supply the actual invite display names in private configuration. Marketing is an eligible internal tester role; this is still a team role with permissions, not a tester-only permission. Preserve all existing roles when adding it. New team invitations are limited to the intended App and do not grant provisioning access. Do not grant Admin to make testing easier.
+These are documentation examples, not a real roster. Supply the actual invite display names in private configuration. For existing team users, attempt the intended group association through the API and use its response/readback as authority. Do not require Marketing or change roles merely because their role labels appear ineligible; existing customer-support/finance members have been accepted directly by the API. Marketing is used for authorized new team invitations, not as a prerequisite for every existing member. New team invitations are limited to the intended App and do not grant provisioning access. Do not grant Admin to make testing easier.
 
 ```sh
 python3 scripts/sync_internal_testers.py --config /etc/testflight/internal-roster-config.json
@@ -50,3 +50,5 @@ python3 scripts/manage_roster.py remove --roster /etc/testflight/internal-tester
 Real emails are private command arguments, not repository content. Run list/edit commands in a private operator session. Add authorization flags only for user-authorized team invitations, marketing role additions or app access. New team invitations need first/last display names using Apple's accepted character set.
 
 The editor stores an object with `testers` and `removed` arrays; existing list-only rosters remain readable. Removal is an explicit exclusion: reconciliation removes that tester from this Skill's configured group using the group relationship API, verifies the result, and leaves the Apple team account/roles and unmanaged groups alone. To revoke immediately across managed projects, reconcile every registered project config. There is no scheduled background job; normal future releases reconcile automatically.
+
+Existing `allow_add_marketing` fields in private rosters are retained for compatibility but no longer cause a role mutation. Group association and API readback are authoritative; changing team roles is a separate explicitly authorized administration task.
